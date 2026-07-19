@@ -41,13 +41,21 @@ Everything below is verified by running it, not assumed.
 
 ## Prioritized roadmap (in order — highest user impact first)
 
-1. **Shrink the 1.36MB app chunk further.** Routes are already
-   `lazy()`; the remaining weight is shared feature code pulled in
-   through barrel imports. Find the offenders with
-   `npx vite-bundle-visualizer` and break the import chains —
-   likely suspects: `src/renderer/features/*/index.ts` barrels
-   re-exporting everything, and settings screens imported eagerly
-   from the shell. Target: < 800KB entry.
+1. **Shrink the app chunk further (now 1.33MB).** Full-screen
+   player is already split (done). I ran the bundle analysis
+   (`npx vite-bundle-visualizer -c web.vite.config.ts -t raw-data`)
+   — the measured top offenders inside the entry chunk, in KB raw:
+   settings.store.ts 83, item-table-list-column 65, en.json 63,
+   subsonic-controller 55, player.store 54, item-table-list 52,
+   jellyfin-controller 49, table-config 44, playlist-folder-tree 41,
+   navidrome-controller 35, navidrome-types 29, controller.ts 26,
+   jellyfin-types 26.
+   THE BIG WIN (~217KB): all three server controllers ship to every
+   user, but a user connects to ONE server type. Refactor
+   src/renderer/api/controller.ts to dynamic-import the controller
+   for the active server type at connect time. Check every call
+   site is already async-safe before switching. Target: < 900KB
+   entry after this alone.
 2. **Perceived-speed polish (the actual 'Apple Music feel'):**
    skeleton states on Home/for-you/album grid while queries load
    (skeleton component already exists in shared/components),
