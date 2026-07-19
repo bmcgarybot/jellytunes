@@ -44,6 +44,19 @@ export default defineConfig({
 
                     return 'assets/[name]-[hash][extname]';
                 },
+                manualChunks(id: string) {
+                    if (!id.includes('node_modules')) return undefined;
+                    const m = id.match(/node_modules\/(?:\.pnpm\/[^/]+\/node_modules\/)?(@?[^/]+(?:\/[^/]+)?)/);
+                    const pkg = m ? m[1] : '';
+                    if (/butterchurn|audiomotion/.test(pkg)) return 'vendor-visualizer';
+                    if (/kuroshiro|kuromoji|wanakana/.test(pkg)) return 'vendor-japanese';
+                    if (/^react(-dom)?$|react-router|scheduler/.test(pkg)) return 'vendor-react';
+                    if (/@mantine|@radix-ui|overlayscrollbars|motion|cmdk|react-icons/.test(pkg)) return 'vendor-ui';
+                    if (/@tanstack|axios|idb-keyval|fuse\.js|zustand|immer|zod/.test(pkg)) return 'vendor-data';
+                    if (/i18next/.test(pkg)) return 'vendor-i18n';
+                    if (/wavesurfer|icecast|fast-average-color|music-metadata|taglib|react-player/.test(pkg)) return 'vendor-media';
+                    return 'vendor-misc';
+                },
                 sourcemapExcludeSources: false,
             },
         },
