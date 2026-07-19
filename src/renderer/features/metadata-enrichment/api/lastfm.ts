@@ -7,50 +7,15 @@ import axios, { type AxiosInstance } from 'axios';
 
 const LASTFM_BASE = 'https://ws.audioscrobbler.com/2.0';
 
-function createClient(apiKey: string): AxiosInstance {
-    return axios.create({
-        baseURL: LASTFM_BASE,
-        params: {
-            api_key: apiKey,
-            format: 'json',
-        },
-        timeout: 10000,
-    });
-}
-
-export interface LastFmArtistInfo {
-    name: string;
-    mbid?: string;
-    url?: string;
-    stats?: {
-        listeners: string;
-        playcount: string;
-    };
-    similar?: {
-        artist: Array<{
-            name: string;
-            url: string;
-        }>;
-    };
-    tags?: {
-        tag: Array<{
-            name: string;
-            url: string;
-        }>;
-    };
-    bio?: {
-        summary: string;
-        content: string;
-        published: string;
-    };
-}
-
 export interface LastFmAlbumInfo {
-    name: string;
     artist: string;
-    mbid?: string;
-    url?: string;
+    image?: Array<{
+        '#text': string;
+        size: string;
+    }>;
     listeners?: string;
+    mbid?: string;
+    name: string;
     playcount?: string;
     tags?: {
         tag: Array<{
@@ -58,21 +23,42 @@ export interface LastFmAlbumInfo {
             url: string;
         }>;
     };
+    url?: string;
     wiki?: {
-        summary: string;
         content: string;
         published: string;
+        summary: string;
     };
-    image?: Array<{
-        '#text': string;
-        size: string;
-    }>;
+}
+
+export interface LastFmArtistInfo {
+    bio?: {
+        content: string;
+        published: string;
+        summary: string;
+    };
+    mbid?: string;
+    name: string;
+    similar?: {
+        artist: Array<{
+            name: string;
+            url: string;
+        }>;
+    };
+    stats?: {
+        listeners: string;
+        playcount: string;
+    };
+    tags?: {
+        tag: Array<{
+            name: string;
+            url: string;
+        }>;
+    };
+    url?: string;
 }
 
 export interface LastFmTopAlbum {
-    name: string;
-    playcount: number;
-    mbid?: string;
     artist: {
         name: string;
     };
@@ -80,26 +66,9 @@ export interface LastFmTopAlbum {
         '#text': string;
         size: string;
     }>;
-}
-
-export async function getArtistInfo(
-    apiKey: string,
-    artistName: string,
-): Promise<LastFmArtistInfo | null> {
-    if (!apiKey) return null;
-    const client = createClient(apiKey);
-    try {
-        const response = await client.get('', {
-            params: {
-                method: 'artist.getinfo',
-                artist: artistName,
-                autocorrect: 1,
-            },
-        });
-        return response.data?.artist || null;
-    } catch {
-        return null;
-    }
+    mbid?: string;
+    name: string;
+    playcount: number;
 }
 
 export async function getAlbumInfo(
@@ -112,13 +81,33 @@ export async function getAlbumInfo(
     try {
         const response = await client.get('', {
             params: {
-                method: 'album.getinfo',
-                artist: artistName,
                 album: albumName,
+                artist: artistName,
                 autocorrect: 1,
+                method: 'album.getinfo',
             },
         });
         return response.data?.album || null;
+    } catch {
+        return null;
+    }
+}
+
+export async function getArtistInfo(
+    apiKey: string,
+    artistName: string,
+): Promise<LastFmArtistInfo | null> {
+    if (!apiKey) return null;
+    const client = createClient(apiKey);
+    try {
+        const response = await client.get('', {
+            params: {
+                artist: artistName,
+                autocorrect: 1,
+                method: 'artist.getinfo',
+            },
+        });
+        return response.data?.artist || null;
     } catch {
         return null;
     }
@@ -134,10 +123,10 @@ export async function getSimilarArtists(
     try {
         const response = await client.get('', {
             params: {
-                method: 'artist.getsimilar',
                 artist: artistName,
-                limit,
                 autocorrect: 1,
+                limit,
+                method: 'artist.getsimilar',
             },
         });
         const similar = response.data?.similarartists?.artist;
@@ -148,18 +137,15 @@ export async function getSimilarArtists(
     }
 }
 
-export async function getTopTags(
-    apiKey: string,
-    artistName: string,
-): Promise<string[]> {
+export async function getTopTags(apiKey: string, artistName: string): Promise<string[]> {
     if (!apiKey) return [];
     const client = createClient(apiKey);
     try {
         const response = await client.get('', {
             params: {
-                method: 'artist.gettoptags',
                 artist: artistName,
                 autocorrect: 1,
+                method: 'artist.gettoptags',
             },
         });
         const tags = response.data?.toptags?.tag;
@@ -168,4 +154,15 @@ export async function getTopTags(
     } catch {
         return [];
     }
+}
+
+function createClient(apiKey: string): AxiosInstance {
+    return axios.create({
+        baseURL: LASTFM_BASE,
+        params: {
+            api_key: apiKey,
+            format: 'json',
+        },
+        timeout: 10000,
+    });
 }

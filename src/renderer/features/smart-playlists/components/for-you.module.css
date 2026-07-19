@@ -1,6 +1,6 @@
-.forYouContainer {
-    padding: 2rem;
+.for-you-container {
     max-width: 1200px;
+    padding: 2rem;
     margin: 0 auto;
 }
 
@@ -9,130 +9,130 @@
 }
 
 .title {
+    margin: 0 0 0.25rem;
     font-size: 2.5rem;
     font-weight: 800;
     letter-spacing: -0.02em;
-    margin: 0 0 0.25rem;
 }
 
 .subtitle {
+    margin: 0;
     font-size: 1rem;
     opacity: 0.6;
-    margin: 0;
 }
 
 .section {
     margin-bottom: 2.5rem;
 }
 
-.sectionTitle {
+.section-title {
+    margin-bottom: 1rem;
     font-size: 1.35rem;
     font-weight: 700;
-    margin-bottom: 1rem;
     letter-spacing: -0.01em;
 }
 
 /* Main smart playlist grid */
-.playlistGrid {
+.playlist-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
     gap: 1rem;
 }
 
-.playlistCard {
+.playlist-card {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
-    padding: 1.25rem;
-    border-radius: 16px;
-    border: none;
-    cursor: pointer;
     min-height: 140px;
-    transition: transform 0.2s, box-shadow 0.2s;
+    padding: 1.25rem;
+    font-family: inherit;
     color: white;
     text-align: left;
-    font-family: inherit;
+    cursor: pointer;
+    border: none;
+    border-radius: 16px;
+    transition: transform 0.2s, box-shadow 0.2s;
 }
 
-.playlistCard:hover {
+.playlist-card:hover {
+    box-shadow: 0 8px 25px rgb(0 0 0 / 30%);
     transform: translateY(-3px);
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
 }
 
-.playlistIcon {
-    font-size: 2rem;
+.playlist-icon {
     margin-bottom: 0.75rem;
+    font-size: 2rem;
 }
 
-.playlistName {
+.playlist-name {
+    margin-bottom: 0.25rem;
     font-size: 1.1rem;
     font-weight: 700;
-    margin-bottom: 0.25rem;
 }
 
-.playlistDesc {
+.playlist-desc {
     font-size: 0.8rem;
-    opacity: 0.85;
     line-height: 1.4;
+    opacity: 0.85;
 }
 
 /* Decade grid */
-.decadeGrid {
+.decade-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
     gap: 0.75rem;
 }
 
-.decadeCard {
+.decade-card {
     display: flex;
     align-items: center;
     justify-content: center;
     padding: 1.5rem;
-    border-radius: 12px;
-    border: none;
-    cursor: pointer;
-    transition: transform 0.2s, box-shadow 0.2s;
-    color: white;
     font-family: inherit;
+    color: white;
+    cursor: pointer;
+    border: none;
+    border-radius: 12px;
+    transition: transform 0.2s, box-shadow 0.2s;
 }
 
-.decadeCard:hover {
+.decade-card:hover {
+    box-shadow: 0 6px 20px rgb(0 0 0 / 25%);
     transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
 }
 
-.decadeName {
+.decade-name {
     font-size: 1.3rem;
     font-weight: 800;
     letter-spacing: -0.01em;
 }
 
 /* Genre grid */
-.genreGrid {
+.genre-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
     gap: 0.75rem;
 }
 
-.genreCard {
+.genre-card {
     display: flex;
     align-items: center;
     justify-content: center;
     padding: 1.25rem;
-    border-radius: 12px;
-    border: none;
-    cursor: pointer;
-    transition: transform 0.2s, box-shadow 0.2s;
-    color: white;
     font-family: inherit;
+    color: white;
+    cursor: pointer;
+    border: none;
+    border-radius: 12px;
+    transition: transform 0.2s, box-shadow 0.2s;
 }
 
-.genreCard:hover {
+.genre-card:hover {
+    box-shadow: 0 6px 20px rgb(0 0 0 / 25%);
     transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
 }
 
-.genreName {
+.genre-name {
     font-size: 1rem;
     font-weight: 700;
 }

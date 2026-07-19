@@ -80,8 +80,9 @@ export default defineConfig({
             injectRegister: 'inline',
             manifest: {
                 background_color: '#0a0a0a',
-                display: 'standalone',
                 categories: ['music', 'entertainment'],
+                description: 'An Apple Music-inspired music player for your Jellyfin library',
+                display: 'standalone',
                 icons: [
                     {
                         sizes: '32x32',
@@ -116,7 +117,6 @@ export default defineConfig({
                     },
                 ],
                 name: 'JellyTunes',
-                description: 'An Apple Music-inspired music player for your Jellyfin library',
                 orientation: 'any',
                 screenshots: [
                     {

@@ -4,4 +4,7 @@ export {
     getDecadePlaylists,
     getSmartPlaylistQuery,
 } from './utils/smart-playlist-definitions';
-export type { SmartPlaylistDefinition, SmartPlaylistType } from './utils/smart-playlist-definitions';
+export type {
+    SmartPlaylistDefinition,
+    SmartPlaylistType,
+} from './utils/smart-playlist-definitions';

@@ -1,15 +1,10 @@
+export {
+    clearMetadataCache,
+    getEnrichedAlbumMetadata,
+    getEnrichedArtistMetadata,
+} from './api/metadata-service';
 export { ArtistBioPanel } from './components/artist-bio-panel';
 export { MetadataSettingsPanel } from './components/metadata-settings-panel';
-export { useArtistMetadata, useAlbumMetadata } from './hooks/use-metadata';
+export { useAlbumMetadata, useArtistMetadata } from './hooks/use-metadata';
 export { useMetadataSettings } from './hooks/use-metadata-settings';
-export {
-    getEnrichedArtistMetadata,
-    getEnrichedAlbumMetadata,
-    clearMetadataCache,
-} from './api/metadata-service';
-export type {
-    ArtistMetadata,
-    AlbumMetadata,
-    TrackMetadata,
-    MetadataProviderConfig,
-} from './types';
+export type { AlbumMetadata, ArtistMetadata, MetadataProviderConfig, TrackMetadata } from './types';

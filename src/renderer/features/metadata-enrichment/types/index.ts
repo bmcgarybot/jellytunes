@@ -9,80 +9,80 @@
  * - TheAudioDB (free tier)
  */
 
-export interface MetadataProviderConfig {
-    musicbrainz: {
-        enabled: boolean;
-        userAgent: string;
-        baseUrl: string;
-        rateLimitMs: number;
-    };
-    lastfm: {
-        enabled: boolean;
-        apiKey: string;
-        baseUrl: string;
-    };
-    fanartTv: {
-        enabled: boolean;
-        apiKey: string;
-        baseUrl: string;
-    };
-    theAudioDb: {
-        enabled: boolean;
-        baseUrl: string;
-    };
-}
-
-export interface ArtistMetadata {
-    name: string;
-    biography?: string;
-    biographySource?: string;
-    musicBrainzId?: string;
-    genres?: string[];
-    tags?: string[];
-    similarArtists?: string[];
-    backgroundImages?: string[];
-    thumbnailImages?: string[];
-    bannerImages?: string[];
-    logoImages?: string[];
-    country?: string;
-    formedYear?: string;
-    website?: string;
-    lastFmUrl?: string;
-    listeners?: number;
-    playCount?: number;
-}
-
 export interface AlbumMetadata {
-    name: string;
     artist: string;
-    musicBrainzId?: string;
-    releaseDate?: string;
-    genres?: string[];
-    tags?: string[];
-    rating?: number;
-    ratingCount?: number;
-    coverArtUrls?: string[];
     cdArtUrls?: string[];
+    coverArtUrls?: string[];
     description?: string;
     descriptionSource?: string;
+    genres?: string[];
     label?: string;
+    musicBrainzId?: string;
+    name: string;
+    rating?: number;
+    ratingCount?: number;
+    releaseDate?: string;
+    tags?: string[];
     type?: string;
 }
 
-export interface TrackMetadata {
-    name: string;
-    artist: string;
-    album?: string;
-    musicBrainzId?: string;
-    duration?: number;
+export interface ArtistMetadata {
+    backgroundImages?: string[];
+    bannerImages?: string[];
+    biography?: string;
+    biographySource?: string;
+    country?: string;
+    formedYear?: string;
     genres?: string[];
+    lastFmUrl?: string;
+    listeners?: number;
+    logoImages?: string[];
+    musicBrainzId?: string;
+    name: string;
+    playCount?: number;
+    similarArtists?: string[];
     tags?: string[];
-    lyrics?: string;
+    thumbnailImages?: string[];
+    website?: string;
+}
+
+export interface MetadataProviderConfig {
+    fanartTv: {
+        apiKey: string;
+        baseUrl: string;
+        enabled: boolean;
+    };
+    lastfm: {
+        apiKey: string;
+        baseUrl: string;
+        enabled: boolean;
+    };
+    musicbrainz: {
+        baseUrl: string;
+        enabled: boolean;
+        rateLimitMs: number;
+        userAgent: string;
+    };
+    theAudioDb: {
+        baseUrl: string;
+        enabled: boolean;
+    };
 }
 
 export interface MetadataSearchResult<T> {
-    data: T | null;
-    source: string;
     cached: boolean;
+    data: null | T;
     error?: string;
+    source: string;
+}
+
+export interface TrackMetadata {
+    album?: string;
+    artist: string;
+    duration?: number;
+    genres?: string[];
+    lyrics?: string;
+    musicBrainzId?: string;
+    name: string;
+    tags?: string[];
 }

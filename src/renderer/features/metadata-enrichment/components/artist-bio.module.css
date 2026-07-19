@@ -1,21 +1,21 @@
 .container {
     position: relative;
+    margin-bottom: 1.5rem;
     overflow: hidden;
     border-radius: 12px;
-    margin-bottom: 1.5rem;
 }
 
-.backgroundImage {
+.background-image {
     position: absolute;
     top: 0;
-    left: 0;
     right: 0;
     bottom: 0;
-    background-size: cover;
+    left: 0;
+    z-index: 0;
     background-position: center;
+    background-size: cover;
     opacity: 0.15;
     filter: blur(2px);
-    z-index: 0;
 }
 
 .content {
@@ -24,26 +24,26 @@
     padding: 1.5rem;
 }
 
-.sectionTitle {
+.section-title {
+    margin-bottom: 0.75rem;
     font-size: 0.85rem;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.05em;
     opacity: 0.7;
-    margin-bottom: 0.75rem;
 }
 
-.bioSection {
+.bio-section {
     margin-bottom: 1.25rem;
 }
 
-.bioText {
+.bio-text {
+    max-height: 200px;
+    margin: 0;
+    overflow-y: auto;
     font-size: 0.95rem;
     line-height: 1.7;
     opacity: 0.9;
-    max-height: 200px;
-    overflow-y: auto;
-    margin: 0;
 }
 
 .source {
@@ -53,13 +53,13 @@
     opacity: 0.5;
 }
 
-.statsSection {
+.stats-section {
     display: flex;
     gap: 2rem;
-    margin-bottom: 1.25rem;
     padding: 1rem 0;
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    margin-bottom: 1.25rem;
+    border-top: 1px solid rgb(255 255 255 / 10%);
+    border-bottom: 1px solid rgb(255 255 255 / 10%);
 }
 
 .stat {
@@ -68,27 +68,27 @@
     gap: 0.25rem;
 }
 
-.statValue {
+.stat-value {
     font-size: 1.2rem;
     font-weight: 700;
 }
 
-.statLabel {
+.stat-label {
     font-size: 0.75rem;
-    opacity: 0.6;
     text-transform: uppercase;
     letter-spacing: 0.05em;
+    opacity: 0.6;
 }
 
-.genresSection {
+.genres-section {
     margin-bottom: 1rem;
 }
 
-.similarSection {
+.similar-section {
     margin-bottom: 0.5rem;
 }
 
-.tagList {
+.tag-list {
     display: flex;
     flex-wrap: wrap;
     gap: 0.5rem;
@@ -97,31 +97,31 @@
 .tag {
     display: inline-block;
     padding: 0.35rem 0.85rem;
-    border-radius: 20px;
     font-size: 0.8rem;
     font-weight: 500;
-    background: rgba(255, 255, 255, 0.1);
+    background: rgb(255 255 255 / 10%);
+    border-radius: 20px;
     backdrop-filter: blur(4px);
     transition: background 0.2s;
 }
 
 .tag:hover {
-    background: rgba(255, 255, 255, 0.2);
     cursor: pointer;
+    background: rgb(255 255 255 / 20%);
 }
 
-.similarTag {
+.similar-tag {
     composes: tag;
-    background: rgba(100, 149, 237, 0.15);
+    background: rgb(100 149 237 / 15%);
 }
 
-.similarTag:hover {
-    background: rgba(100, 149, 237, 0.3);
+.similar-tag:hover {
+    background: rgb(100 149 237 / 30%);
 }
 
 .skeleton {
     padding: 2rem;
+    font-style: italic;
     text-align: center;
     opacity: 0.4;
-    font-style: italic;
 }

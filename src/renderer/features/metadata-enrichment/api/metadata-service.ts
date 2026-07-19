@@ -1,3 +1,7 @@
+import type { AlbumMetadata, ArtistMetadata } from '../types';
+
+import * as fanartTv from './fanart-tv';
+import * as lastfm from './lastfm';
 /**
  * JellyTunes Metadata Enrichment Service
  *
@@ -11,9 +15,6 @@
  * - Rate limiting for MusicBrainz compliance
  */
 import * as musicbrainz from './musicbrainz';
-import * as lastfm from './lastfm';
-import * as fanartTv from './fanart-tv';
-import type { ArtistMetadata, AlbumMetadata } from '../types';
 
 // Simple in-memory cache with TTL
 const CACHE_TTL_MS = 30 * 60 * 1000; // 30 minutes
@@ -27,7 +28,7 @@ interface CacheEntry<T> {
 class MetadataCache<T> {
     private cache = new Map<string, CacheEntry<T>>();
 
-    get(key: string): T | null {
+    get(key: string): null | T {
         const entry = this.cache.get(key);
         if (!entry) return null;
         if (Date.now() - entry.timestamp > CACHE_TTL_MS) {
@@ -51,13 +52,102 @@ const artistCache = new MetadataCache<ArtistMetadata>();
 const albumCache = new MetadataCache<AlbumMetadata>();
 
 /**
+ * Clear all metadata caches
+ */
+export function clearMetadataCache(): void {
+    artistCache['cache'].clear();
+    albumCache['cache'].clear();
+}
+
+/**
+ * Get enriched album metadata from all available sources
+ */
+export async function getEnrichedAlbumMetadata(
+    albumName: string,
+    artistName: string,
+    options?: {
+        fanartTvApiKey?: string;
+        lastfmApiKey?: string;
+    },
+): Promise<AlbumMetadata> {
+    const cacheKey = `${artistName}::${albumName}`.toLowerCase().trim();
+    const cached = albumCache.get(cacheKey);
+    if (cached) return cached;
+
+    const result: AlbumMetadata = { artist: artistName, name: albumName };
+
+    // Step 1: Search MusicBrainz
+    const mbRelease = await musicbrainz.searchRelease(albumName, artistName);
+    if (mbRelease) {
+        result.musicBrainzId = mbRelease.id;
+        result.releaseDate = mbRelease.date;
+        result.type = mbRelease['release-group']?.['primary-type'];
+
+        if (mbRelease['label-info']?.[0]?.label?.name) {
+            result.label = mbRelease['label-info'][0].label.name;
+        }
+
+        // Get detailed info
+        const details = await musicbrainz.getReleaseDetails(mbRelease.id);
+        if (details) {
+            result.genres =
+                details.genres?.sort((a, b) => b.count - a.count).map((g) => g.name) || [];
+            result.tags =
+                details.tags
+                    ?.sort((a, b) => b.count - a.count)
+                    .slice(0, 10)
+                    .map((t) => t.name) || [];
+        }
+
+        // Get cover art from Cover Art Archive
+        const coverUrl = await musicbrainz.getCoverArt(mbRelease.id);
+        if (coverUrl) {
+            result.coverArtUrls = [coverUrl];
+        }
+    }
+
+    // Step 2: Last.fm album info
+    if (options?.lastfmApiKey) {
+        const lfmAlbum = await lastfm.getAlbumInfo(options.lastfmApiKey, artistName, albumName);
+        if (lfmAlbum) {
+            if (lfmAlbum.wiki?.content) {
+                result.description = lfmAlbum.wiki.content
+                    .replace(/<a\b[^>]*>.*?<\/a>/gi, '')
+                    .replace(/\s+/g, ' ')
+                    .trim();
+                result.descriptionSource = 'Last.fm';
+            }
+            if (lfmAlbum.tags?.tag) {
+                const lfmTags = lfmAlbum.tags.tag.map((t) => t.name);
+                result.tags = [...new Set([...(result.tags || []), ...lfmTags])];
+            }
+        }
+    }
+
+    // Step 3: Fanart.tv album images
+    if (options?.fanartTvApiKey && result.musicBrainzId) {
+        const images = await fanartTv.getAlbumImages(options.fanartTvApiKey, result.musicBrainzId);
+        if (images) {
+            if (images.albumcover?.length) {
+                const covers = fanartTv.sortedImageUrls(images.albumcover);
+                result.coverArtUrls = [...new Set([...(result.coverArtUrls || []), ...covers])];
+            }
+            result.cdArtUrls = fanartTv.sortedImageUrls(images.cdart);
+        }
+    }
+
+    albumCache.set(cacheKey, result);
+    return result;
+}
+
+/**
  * Get enriched artist metadata from all available sources
  */
 export async function getEnrichedArtistMetadata(
     artistName: string,
     options?: {
-        lastfmApiKey?: string;
         fanartTvApiKey?: string;
+        lastfmApiKey?: string;
     },
 ): Promise<ArtistMetadata> {
     const cacheKey = artistName.toLowerCase().trim();
@@ -76,13 +166,13 @@ export async function getEnrichedArtistMetadata(
         // Get detailed info including tags, genres, and relations
         const details = await musicbrainz.getArtistDetails(mbArtist.id);
         if (details) {
-            result.genres = details.genres
-                ?.sort((a, b) => b.count - a.count)
-                .map((g) => g.name) || [];
-            result.tags = details.tags
-                ?.sort((a, b) => b.count - a.count)
-                .slice(0, 15)
-                .map((t) => t.name) || [];
+            result.genres =
+                details.genres?.sort((a, b) => b.count - a.count).map((g) => g.name) || [];
+            result.tags =
+                details.tags
+                    ?.sort((a, b) => b.count - a.count)
+                    .slice(0, 15)
+                    .map((t) => t.name) || [];
 
             // Extract website from relations
             const websiteRel = details.relations?.find((r) => r.type === 'official homepage');
@@ -123,116 +213,15 @@ export async function getEnrichedArtistMetadata(
 
     // Step 3: Get Fanart.tv images
     if (options?.fanartTvApiKey && result.musicBrainzId) {
-        const images = await fanartTv.getArtistImages(
-            options.fanartTvApiKey,
-            result.musicBrainzId,
-        );
+        const images = await fanartTv.getArtistImages(options.fanartTvApiKey, result.musicBrainzId);
         if (images) {
             result.backgroundImages = fanartTv.sortedImageUrls(images.artistbackground);
             result.thumbnailImages = fanartTv.sortedImageUrls(images.artistthumb);
             result.bannerImages = fanartTv.sortedImageUrls(images.musicbanner);
-            result.logoImages = fanartTv.sortedImageUrls(
-                images.hdmusiclogo || images.musiclogo,
-            );
+            result.logoImages = fanartTv.sortedImageUrls(images.hdmusiclogo || images.musiclogo);
         }
     }
 
     artistCache.set(cacheKey, result);
     return result;
-}
-
-/**
- * Get enriched album metadata from all available sources
- */
-export async function getEnrichedAlbumMetadata(
-    albumName: string,
-    artistName: string,
-    options?: {
-        lastfmApiKey?: string;
-        fanartTvApiKey?: string;
-    },
-): Promise<AlbumMetadata> {
-    const cacheKey = `${artistName}::${albumName}`.toLowerCase().trim();
-    const cached = albumCache.get(cacheKey);
-    if (cached) return cached;
-
-    const result: AlbumMetadata = { name: albumName, artist: artistName };
-
-    // Step 1: Search MusicBrainz
-    const mbRelease = await musicbrainz.searchRelease(albumName, artistName);
-    if (mbRelease) {
-        result.musicBrainzId = mbRelease.id;
-        result.releaseDate = mbRelease.date;
-        result.type = mbRelease['release-group']?.['primary-type'];
-
-        if (mbRelease['label-info']?.[0]?.label?.name) {
-            result.label = mbRelease['label-info'][0].label.name;
-        }
-
-        // Get detailed info
-        const details = await musicbrainz.getReleaseDetails(mbRelease.id);
-        if (details) {
-            result.genres = details.genres
-                ?.sort((a, b) => b.count - a.count)
-                .map((g) => g.name) || [];
-            result.tags = details.tags
-                ?.sort((a, b) => b.count - a.count)
-                .slice(0, 10)
-                .map((t) => t.name) || [];
-        }
-
-        // Get cover art from Cover Art Archive
-        const coverUrl = await musicbrainz.getCoverArt(mbRelease.id);
-        if (coverUrl) {
-            result.coverArtUrls = [coverUrl];
-        }
-    }
-
-    // Step 2: Last.fm album info
-    if (options?.lastfmApiKey) {
-        const lfmAlbum = await lastfm.getAlbumInfo(
-            options.lastfmApiKey,
-            artistName,
-            albumName,
-        );
-        if (lfmAlbum) {
-            if (lfmAlbum.wiki?.content) {
-                result.description = lfmAlbum.wiki.content
-                    .replace(/<a\b[^>]*>.*?<\/a>/gi, '')
-                    .replace(/\s+/g, ' ')
-                    .trim();
-                result.descriptionSource = 'Last.fm';
-            }
-            if (lfmAlbum.tags?.tag) {
-                const lfmTags = lfmAlbum.tags.tag.map((t) => t.name);
-                result.tags = [...new Set([...(result.tags || []), ...lfmTags])];
-            }
-        }
-    }
-
-    // Step 3: Fanart.tv album images
-    if (options?.fanartTvApiKey && result.musicBrainzId) {
-        const images = await fanartTv.getAlbumImages(
-            options.fanartTvApiKey,
-            result.musicBrainzId,
-        );
-        if (images) {
-            if (images.albumcover?.length) {
-                const covers = fanartTv.sortedImageUrls(images.albumcover);
-                result.coverArtUrls = [...new Set([...(result.coverArtUrls || []), ...covers])];
-            }
-            result.cdArtUrls = fanartTv.sortedImageUrls(images.cdart);
-        }
-    }
-
-    albumCache.set(cacheKey, result);
-    return result;
-}
-
-/**
- * Clear all metadata caches
- */
-export function clearMetadataCache(): void {
-    artistCache['cache'].clear();
-    albumCache['cache'].clear();
 }

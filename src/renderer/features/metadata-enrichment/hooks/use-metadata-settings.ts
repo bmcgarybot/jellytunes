@@ -1,3 +1,5 @@
+import { useCallback, useState } from 'react';
+
 /**
  * Hook for metadata enrichment settings stored in localStorage
  */
@@ -6,8 +8,28 @@ const STORAGE_KEY = 'jellytunes-metadata-settings';
 
 interface MetadataSettings {
     enrichmentEnabled: boolean;
-    lastfmApiKey: string;
     fanartTvApiKey: string;
+    lastfmApiKey: string;
+}
+
+export function useMetadataSettings() {
+    // State-backed so consumers re-render when settings change; the old
+    // version wrote to localStorage without updating any state, leaving
+    // the UI stale until a full reload.
+    const [settings, setSettings] = useState<MetadataSettings>(getSettings);
+
+    const updateSettings = useCallback((partial: Partial<MetadataSettings>) => {
+        setSettings((prev) => {
+            const updated = { ...prev, ...partial };
+            saveSettings(updated);
+            return updated;
+        });
+    }, []);
+
+    return {
+        ...settings,
+        updateSettings,
+    };
 }
 
 function getSettings(): MetadataSettings {
@@ -21,11 +43,11 @@ function getSettings(): MetadataSettings {
     }
 
     // Check for environment-level config (Docker env vars injected via settings.js)
-    const win = window as Record<string, unknown>;
+    const win = window as unknown as Record<string, unknown>;
     return {
         enrichmentEnabled: true,
-        lastfmApiKey: (win.LASTFM_API_KEY as string) || '',
         fanartTvApiKey: (win.FANART_TV_API_KEY as string) || '',
+        lastfmApiKey: (win.LASTFM_API_KEY as string) || '',
     };
 }
 
@@ -35,18 +57,4 @@ function saveSettings(settings: MetadataSettings): void {
     } catch {
         // ignore
     }
-}
-
-export function useMetadataSettings() {
-    const settings = getSettings();
-
-    const updateSettings = (partial: Partial<MetadataSettings>) => {
-        const updated = { ...settings, ...partial };
-        saveSettings(updated);
-    };
-
-    return {
-        ...settings,
-        updateSettings,
-    };
 }

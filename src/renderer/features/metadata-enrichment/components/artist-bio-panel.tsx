@@ -10,7 +10,7 @@ interface ArtistBioPanelProps {
 }
 
 export function ArtistBioPanel({ artistName }: ArtistBioPanelProps) {
-    const { data: metadata, isLoading, error } = useArtistMetadata(artistName);
+    const { data: metadata, error, isLoading } = useArtistMetadata(artistName);
 
     if (isLoading) {
         return (
@@ -37,7 +37,7 @@ export function ArtistBioPanel({ artistName }: ArtistBioPanelProps) {
         <div className={styles.container}>
             {metadata.backgroundImages?.[0] && (
                 <div
-                    className={styles.backgroundImage}
+                    className={styles['background-image']}
                     style={{
                         backgroundImage: `url(${metadata.backgroundImages[0]})`,
                     }}
@@ -46,9 +46,9 @@ export function ArtistBioPanel({ artistName }: ArtistBioPanelProps) {
 
             <div className={styles.content}>
                 {hasBio && (
-                    <div className={styles.bioSection}>
-                        <h3 className={styles.sectionTitle}>About</h3>
-                        <p className={styles.bioText}>{metadata.biography}</p>
+                    <div className={styles['bio-section']}>
+                        <h3 className={styles['section-title']}>About</h3>
+                        <p className={styles['bio-text']}>{metadata.biography}</p>
                         {metadata.biographySource && (
                             <span className={styles.source}>
                                 Source: {metadata.biographySource}
@@ -58,38 +58,38 @@ export function ArtistBioPanel({ artistName }: ArtistBioPanelProps) {
                 )}
 
                 {hasStats && (
-                    <div className={styles.statsSection}>
+                    <div className={styles['stats-section']}>
                         {metadata.listeners && (
                             <div className={styles.stat}>
-                                <span className={styles.statValue}>
+                                <span className={styles['stat-value']}>
                                     {metadata.listeners.toLocaleString()}
                                 </span>
-                                <span className={styles.statLabel}>listeners</span>
+                                <span className={styles['stat-label']}>listeners</span>
                             </div>
                         )}
                         {metadata.playCount && (
                             <div className={styles.stat}>
-                                <span className={styles.statValue}>
+                                <span className={styles['stat-value']}>
                                     {metadata.playCount.toLocaleString()}
                                 </span>
-                                <span className={styles.statLabel}>plays</span>
+                                <span className={styles['stat-label']}>plays</span>
                             </div>
                         )}
                         {metadata.country && (
                             <div className={styles.stat}>
-                                <span className={styles.statValue}>{metadata.country}</span>
-                                <span className={styles.statLabel}>origin</span>
+                                <span className={styles['stat-value']}>{metadata.country}</span>
+                                <span className={styles['stat-label']}>origin</span>
                             </div>
                         )}
                     </div>
                 )}
 
                 {hasGenres && (
-                    <div className={styles.genresSection}>
-                        <h4 className={styles.sectionTitle}>Genres</h4>
-                        <div className={styles.tagList}>
+                    <div className={styles['genres-section']}>
+                        <h4 className={styles['section-title']}>Genres</h4>
+                        <div className={styles['tag-list']}>
                             {metadata.genres!.slice(0, 8).map((genre) => (
-                                <span key={genre} className={styles.tag}>
+                                <span className={styles.tag} key={genre}>
                                     {genre}
                                 </span>
                             ))}
@@ -98,11 +98,11 @@ export function ArtistBioPanel({ artistName }: ArtistBioPanelProps) {
                 )}
 
                 {hasSimilar && (
-                    <div className={styles.similarSection}>
-                        <h4 className={styles.sectionTitle}>Similar Artists</h4>
-                        <div className={styles.tagList}>
+                    <div className={styles['similar-section']}>
+                        <h4 className={styles['section-title']}>Similar Artists</h4>
+                        <div className={styles['tag-list']}>
                             {metadata.similarArtists!.slice(0, 6).map((name) => (
-                                <span key={name} className={styles.similarTag}>
+                                <span className={styles['similar-tag']} key={name}>
                                     {name}
                                 </span>
                             ))}

@@ -11,77 +11,77 @@
  * - Favorites
  */
 
-export type SmartPlaylistType =
-    | 'recently-added'
-    | 'most-played'
-    | 'top-rated'
-    | 'random-mix'
-    | 'favorites'
-    | 'decade'
-    | 'genre'
-    | 'for-you';
-
 export interface SmartPlaylistDefinition {
-    id: string;
-    type: SmartPlaylistType;
-    name: string;
+    color: string;
     description: string;
     icon: string;
-    color: string;
+    id: string;
+    name: string;
     param?: string; // decade year or genre name
+    type: SmartPlaylistType;
 }
+
+export type SmartPlaylistType =
+    | 'decade'
+    | 'favorites'
+    | 'for-you'
+    | 'genre'
+    | 'most-played'
+    | 'random-mix'
+    | 'recently-added'
+    | 'top-rated';
 
 /**
  * Built-in smart playlists
  */
 export const BUILT_IN_PLAYLISTS: SmartPlaylistDefinition[] = [
     {
-        id: 'smart-recently-added',
-        type: 'recently-added',
-        name: 'Recently Added',
+        color: '#4CAF50',
         description: 'Fresh additions to your library',
         icon: '✨',
-        color: '#4CAF50',
+        id: 'smart-recently-added',
+        name: 'Recently Added',
+        type: 'recently-added',
     },
     {
-        id: 'smart-most-played',
-        type: 'most-played',
-        name: 'Most Played',
+        color: '#FF5722',
         description: 'Your all-time favorites',
         icon: '🔥',
-        color: '#FF5722',
+        id: 'smart-most-played',
+        name: 'Most Played',
+        type: 'most-played',
     },
     {
-        id: 'smart-top-rated',
-        type: 'top-rated',
-        name: 'Top Rated',
+        color: '#FFC107',
         description: 'Highest rated tracks in your library',
         icon: '⭐',
-        color: '#FFC107',
+        id: 'smart-top-rated',
+        name: 'Top Rated',
+        type: 'top-rated',
     },
     {
-        id: 'smart-favorites',
-        type: 'favorites',
-        name: 'Favorites',
+        color: '#E91E63',
         description: 'All your liked songs',
         icon: '❤️',
-        color: '#E91E63',
+        id: 'smart-favorites',
+        name: 'Favorites',
+        type: 'favorites',
     },
     {
-        id: 'smart-random-mix',
-        type: 'random-mix',
-        name: 'Random Mix',
+        color: '#9C27B0',
         description: 'A fresh random selection from your library',
         icon: '🎲',
-        color: '#9C27B0',
+        id: 'smart-random-mix',
+        name: 'Random Mix',
+        type: 'random-mix',
     },
     {
-        id: 'smart-for-you',
-        type: 'for-you',
-        name: 'For You',
+        color: '#2196F3',
         description: 'Personalized recommendations based on your listening',
         icon: '💎',
-        color: '#2196F3',
+        id: 'smart-for-you',
+        name: 'For You',
+        type: 'for-you',
     },
 ];
 
@@ -90,23 +90,23 @@ export const BUILT_IN_PLAYLISTS: SmartPlaylistDefinition[] = [
  */
 export function getDecadePlaylists(): SmartPlaylistDefinition[] {
     const decades = [
-        { year: '1960', name: '60s', color: '#8BC34A' },
-        { year: '1970', name: '70s', color: '#FF9800' },
-        { year: '1980', name: '80s', color: '#E91E63' },
-        { year: '1990', name: '90s', color: '#00BCD4' },
-        { year: '2000', name: '2000s', color: '#673AB7' },
-        { year: '2010', name: '2010s', color: '#3F51B5' },
-        { year: '2020', name: '2020s', color: '#009688' },
+        { color: '#8BC34A', name: '60s', year: '1960' },
+        { color: '#FF9800', name: '70s', year: '1970' },
+        { color: '#E91E63', name: '80s', year: '1980' },
+        { color: '#00BCD4', name: '90s', year: '1990' },
+        { color: '#673AB7', name: '2000s', year: '2000' },
+        { color: '#3F51B5', name: '2010s', year: '2010' },
+        { color: '#009688', name: '2020s', year: '2020' },
     ];
 
     return decades.map((d) => ({
-        id: `smart-decade-${d.year}`,
-        type: 'decade' as SmartPlaylistType,
-        name: `The ${d.name}`,
+        color: d.color,
         description: `Music from the ${d.name}`,
         icon: '📅',
-        color: d.color,
+        id: `smart-decade-${d.year}`,
+        name: `The ${d.name}`,
         param: d.year,
+        type: 'decade' as SmartPlaylistType,
     }));
 }
 
@@ -115,64 +115,64 @@ export function getDecadePlaylists(): SmartPlaylistDefinition[] {
  */
 export function getSmartPlaylistQuery(playlist: SmartPlaylistDefinition) {
     switch (playlist.type) {
-        case 'recently-added':
-            return {
-                sortBy: 'DateCreated',
-                sortOrder: 'Descending' as const,
-                limit: 100,
-            };
-        case 'most-played':
-            return {
-                sortBy: 'PlayCount',
-                sortOrder: 'Descending' as const,
-                limit: 100,
-            };
-        case 'top-rated':
-            return {
-                sortBy: 'CommunityRating',
-                sortOrder: 'Descending' as const,
-                limit: 100,
-            };
-        case 'favorites':
-            return {
-                filters: 'IsFavorite',
-                sortBy: 'SortName',
-                sortOrder: 'Ascending' as const,
-                limit: 500,
-            };
-        case 'random-mix':
-            return {
-                sortBy: 'Random',
-                sortOrder: 'Ascending' as const,
-                limit: 50,
-            };
         case 'decade':
             if (playlist.param) {
                 const startYear = parseInt(playlist.param, 10);
                 return {
-                    years: `${startYear}-${startYear + 9}`,
+                    limit: 100,
                     sortBy: 'Random',
                     sortOrder: 'Ascending' as const,
-                    limit: 100,
+                    years: `${startYear}-${startYear + 9}`,
                 };
             }
             return {};
+        case 'favorites':
+            return {
+                filters: 'IsFavorite',
+                limit: 500,
+                sortBy: 'SortName',
+                sortOrder: 'Ascending' as const,
+            };
+        case 'for-you':
+            // "For You" uses a mix of recent favorites + random highly rated
+            return {
+                limit: 50,
+                sortBy: 'Random',
+                sortOrder: 'Ascending' as const,
+            };
         case 'genre':
             if (playlist.param) {
                 return {
                     genres: playlist.param,
+                    limit: 100,
                     sortBy: 'Random',
                     sortOrder: 'Ascending' as const,
-                    limit: 100,
                 };
             }
             return {};
-        case 'for-you':
-            // "For You" uses a mix of recent favorites + random highly rated
+        case 'most-played':
             return {
+                limit: 100,
+                sortBy: 'PlayCount',
+                sortOrder: 'Descending' as const,
+            };
+        case 'random-mix':
+            return {
+                limit: 50,
                 sortBy: 'Random',
                 sortOrder: 'Ascending' as const,
-                limit: 50,
+            };
+        case 'recently-added':
+            return {
+                limit: 100,
+                sortBy: 'DateCreated',
+                sortOrder: 'Descending' as const,
+            };
+        case 'top-rated':
+            return {
+                limit: 100,
+                sortBy: 'CommunityRating',
+                sortOrder: 'Descending' as const,
             };
         default:
             return {};
