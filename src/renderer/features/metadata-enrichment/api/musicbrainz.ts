@@ -8,6 +8,10 @@ const MUSICBRAINZ_BASE = 'https://musicbrainz.org/ws/2';
 const RATE_LIMIT_MS = 1100; // 1 req/sec + buffer
 
 let lastRequestTime = 0;
+// Serializes requests: concurrent callers previously all read the same
+// lastRequestTime and fired together, tripping MusicBrainz's hard
+// 1 req/sec limit (503s and temporary bans).
+let requestChain: Promise<unknown> = Promise.resolve();
 
 export interface MusicBrainzArtist {
     country?: string;
@@ -108,7 +112,7 @@ export async function searchArtist(name: string): Promise<MusicBrainzArtist | nu
                 params: {
                     fmt: 'json',
                     limit: 5,
-                    query: `artist:"${name}"`,
+                    query: `artist:"${escapeLucene(name)}"`,
                 },
             }),
         );
@@ -136,7 +140,7 @@ export async function searchRelease(
                 params: {
                     fmt: 'json',
                     limit: 5,
-                    query: `release:"${albumName}" AND artist:"${artistName}"`,
+                    query: `release:"${escapeLucene(albumName)}" AND artist:"${escapeLucene(artistName)}"`,
                 },
             }),
         );
@@ -159,12 +163,23 @@ function createClient(): AxiosInstance {
     });
 }
 
+/** Escape Lucene special characters so names like '"Weird Al" Yankovic'
+ *  or 'AC/DC' don't break (or alter) the search query. */
+function escapeLucene(value: string): string {
+    return value.replace(/[+\-!(){}[\]^"~*?:\\/&|]/g, '\\$&');
+}
+
 async function rateLimitedRequest<T>(fn: () => Promise<T>): Promise<T> {
-    const now = Date.now();
-    const timeSinceLast = now - lastRequestTime;
-    if (timeSinceLast < RATE_LIMIT_MS) {
-        await new Promise((resolve) => setTimeout(resolve, RATE_LIMIT_MS - timeSinceLast));
-    }
-    lastRequestTime = Date.now();
-    return fn();
+    const run = async (): Promise<T> => {
+        const timeSinceLast = Date.now() - lastRequestTime;
+        if (timeSinceLast < RATE_LIMIT_MS) {
+            await new Promise((resolve) => setTimeout(resolve, RATE_LIMIT_MS - timeSinceLast));
+        }
+        lastRequestTime = Date.now();
+        return fn();
+    };
+    const next = requestChain.then(run, run);
+    // Keep the chain alive even when a request fails
+    requestChain = next.catch(() => undefined);
+    return next;
 }
