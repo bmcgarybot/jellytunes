@@ -104,6 +104,17 @@ Everything below is verified by running it, not assumed.
    add a 300ms spinner on the language select while the chunk
    loads (currently instant-swap assumption).
 
+## Offline-storage feature status (post-audit)
+
+Your offline downloads feature is merged and now green — but it was
+pushed with 6 typecheck + 8 lint errors and a sidebar item that
+existing users could never see (persisted-settings trap, again).
+Both fixed in commit 14b5524; read that commit message in full.
+Standing rule reaffirmed: run `pnpm lint && pnpm typecheck` BEFORE
+every push. The sidebar merge in useSidebarItems now auto-appends
+new default items — use it (just add to the defaults array) for
+the For You entry and any future pages.
+
 ## Rules that keep the repo healthy
 
 - One logical change per commit, imperative subject, body explains
