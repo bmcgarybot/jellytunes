@@ -20,24 +20,19 @@ if (prod) {
 const OFFLINE_DB_NAME = 'jellytunes-offline';
 const AUDIO_STORE = 'audio-blobs';
 
-function openOfflineDB(): Promise<IDBDatabase> {
-    return new Promise((resolve, reject) => {
-        const request = indexedDB.open(OFFLINE_DB_NAME, 1);
-        request.onupgradeneeded = () => {
-            const db = request.result;
-            if (!db.objectStoreNames.contains(AUDIO_STORE)) {
-                db.createObjectStore(AUDIO_STORE);
-            }
-            if (!db.objectStoreNames.contains('artwork')) {
-                db.createObjectStore('artwork');
-            }
-        };
-        request.onsuccess = () => resolve(request.result);
-        request.onerror = () => reject(request.error);
-    });
+/**
+ * Attempt to extract a Jellyfin item ID from a download/stream URL.
+ * Patterns:
+ *   /items/{id}/download
+ *   /Items/{id}/Download
+ *   /audio/{id}/universal
+ */
+function extractTrackId(requestUrl: string): null | string {
+    const match = requestUrl.match(/\/(?:items|audio)\/([a-f0-9]+)\//i);
+    return match ? match[1] : null;
 }
 
-function getOfflineAudio(trackId: string): Promise<{ blob: Blob; mimeType: string } | null> {
+function getOfflineAudio(trackId: string): Promise<null | { blob: Blob; mimeType: string }> {
     return openOfflineDB().then(
         (db) =>
             new Promise((resolve, reject) => {
@@ -57,16 +52,21 @@ function getOfflineAudio(trackId: string): Promise<{ blob: Blob; mimeType: strin
     );
 }
 
-/**
- * Attempt to extract a Jellyfin item ID from a download/stream URL.
- * Patterns:
- *   /items/{id}/download
- *   /Items/{id}/Download
- *   /audio/{id}/universal
- */
-function extractTrackId(requestUrl: string): string | null {
-    const match = requestUrl.match(/\/(?:items|audio)\/([a-f0-9]+)\//i);
-    return match ? match[1] : null;
+function openOfflineDB(): Promise<IDBDatabase> {
+    return new Promise((resolve, reject) => {
+        const request = indexedDB.open(OFFLINE_DB_NAME, 1);
+        request.onupgradeneeded = () => {
+            const db = request.result;
+            if (!db.objectStoreNames.contains(AUDIO_STORE)) {
+                db.createObjectStore(AUDIO_STORE);
+            }
+            if (!db.objectStoreNames.contains('artwork')) {
+                db.createObjectStore('artwork');
+            }
+        };
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error);
+    });
 }
 
 // ─── Service worker events ──────────────────────────────────

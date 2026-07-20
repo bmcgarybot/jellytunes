@@ -44,6 +44,9 @@ export const SidebarIcon = ({ active, route, size }: SidebarIconProps) => {
     const isActive = active !== undefined ? active : location.pathname === route;
     const renderIcon = () => {
         switch (route) {
+            case AppRoute.DOWNLOADS:
+                if (isActive) return <RiDownloadFill size={size} />;
+                return <RiDownloadLine size={size} />;
             case AppRoute.HOME:
                 if (isActive) return <RiHome6Fill size={size} />;
                 return <RiHome6Line size={size} />;
@@ -74,9 +77,6 @@ export const SidebarIcon = ({ active, route, size }: SidebarIconProps) => {
             case AppRoute.RADIO:
                 if (isActive) return <RiRadioFill size={size} />;
                 return <RiRadioLine size={size} />;
-            case AppRoute.DOWNLOADS:
-                if (isActive) return <RiDownloadFill size={size} />;
-                return <RiDownloadLine size={size} />;
             case AppRoute.SETTINGS:
                 if (isActive) return <RiSettings2Fill size={size} />;
                 return <RiSettings2Line size={size} />;

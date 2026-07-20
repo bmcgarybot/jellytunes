@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useTranslation } from 'react-i18next';
 
 import styles from './downloads-page.module.css';
 
@@ -31,7 +30,6 @@ function formatBytes(bytes: number): string {
 }
 
 export const DownloadsPage = () => {
-    const { t } = useTranslation();
     const downloadedTracks = useDownloadedTracks();
     const storageUsed = useOfflineStorageUsed();
     const isOfflineMode = useIsOfflineMode();

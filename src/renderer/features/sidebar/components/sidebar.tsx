@@ -7,6 +7,7 @@ import styles from './sidebar.module.css';
 
 import { useItemImageUrl } from '/@/renderer/components/item-image/item-image';
 import { ContextMenuController } from '/@/renderer/features/context-menu/context-menu-controller';
+import { OfflineIndicator } from '/@/renderer/features/offline-storage/components/offline-indicator';
 import {
     useIsRadioActive,
     useRadioPlayer,
@@ -21,7 +22,6 @@ import {
     SidebarSharedPlaylistList,
     useSidebarPlaylistAddDragMonitor,
 } from '/@/renderer/features/sidebar/components/sidebar-playlist-list';
-import { OfflineIndicator } from '/@/renderer/features/offline-storage/components/offline-indicator';
 import {
     useAppStore,
     useAppStoreActions,

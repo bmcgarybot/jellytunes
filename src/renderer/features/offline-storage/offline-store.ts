@@ -3,8 +3,6 @@ import { devtools, persist } from 'zustand/middleware';
 import { immer } from 'zustand/middleware/immer';
 import { createWithEqualityFn } from 'zustand/traditional';
 
-import { idbStateStorage } from '/@/renderer/store/utils';
-
 // ─── Types ──────────────────────────────────────────────────
 
 export interface DownloadedTrackMeta {
@@ -22,20 +20,15 @@ export interface DownloadedTrackMeta {
 
 export type DownloadStatus = 'cancelled' | 'downloading' | 'error' | 'pending';
 
+export type OfflineSlice = OfflineActions & OfflineState;
+
+// ─── State ──────────────────────────────────────────────────
+
 export interface QueueItem {
     id: string;
     progress: number;
     status: DownloadStatus;
     title: string;
-}
-
-// ─── State ──────────────────────────────────────────────────
-
-interface OfflineState {
-    downloadQueue: QueueItem[];
-    downloadedTracks: Record<string, DownloadedTrackMeta>;
-    isOfflineMode: boolean;
-    storageUsed: number;
 }
 
 interface OfflineActions {
@@ -52,21 +45,16 @@ interface OfflineActions {
     };
 }
 
-export type OfflineSlice = OfflineActions & OfflineState;
+interface OfflineState {
+    downloadedTracks: Record<string, DownloadedTrackMeta>;
+    downloadQueue: QueueItem[];
+    isOfflineMode: boolean;
+    storageUsed: number;
+}
 
 // ─── Persistence helpers ────────────────────────────────────
 
 const IDB_KEY = 'store_offline';
-
-/**
- * Serialise `downloadedTracks` as an array so the JSON round-trip
- * doesn't lose data when lodash merge re-hydrates.
- */
-interface PersistedShape {
-    downloadedTracks: DownloadedTrackMeta[];
-    isOfflineMode: boolean;
-    storageUsed: number;
-}
 
 // ─── Store ──────────────────────────────────────────────────
 
@@ -99,10 +87,7 @@ export const useOfflineStore = createWithEqualityFn<OfflineSlice>()(
                             const track = state.downloadedTracks[trackId];
 
                             if (track) {
-                                state.storageUsed = Math.max(
-                                    0,
-                                    state.storageUsed - track.size,
-                                );
+                                state.storageUsed = Math.max(0, state.storageUsed - track.size);
                                 delete state.downloadedTracks[trackId];
                             }
                         });
@@ -138,8 +123,8 @@ export const useOfflineStore = createWithEqualityFn<OfflineSlice>()(
                         });
                     },
                 },
-                downloadQueue: [],
                 downloadedTracks: {},
+                downloadQueue: [],
                 isOfflineMode: false,
                 storageUsed: 0,
             })),
@@ -157,7 +142,10 @@ export const useOfflineStore = createWithEqualityFn<OfflineSlice>()(
                     for (const t of p.state.downloadedTracks as DownloadedTrackMeta[]) {
                         tracks[t.id] = t;
                     }
-                } else if (p.state.downloadedTracks && typeof p.state.downloadedTracks === 'object') {
+                } else if (
+                    p.state.downloadedTracks &&
+                    typeof p.state.downloadedTracks === 'object'
+                ) {
                     Object.assign(tracks, p.state.downloadedTracks);
                 }
 

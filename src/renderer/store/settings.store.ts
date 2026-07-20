@@ -2903,7 +2903,19 @@ export const useSidebarPlaylistListFilterRegex = () =>
     useSettingsStore((state) => state.general.sidebarPlaylistListFilterRegex, shallow);
 
 export const useSidebarItems = () =>
-    useSettingsStore((state) => state.general.sidebarItems, shallow);
+    useSettingsStore((state) => {
+        // Non-destructive merge: users' sidebar layout persists across
+        // versions, so items added in updates (e.g. Downloads) would
+        // otherwise never appear for existing users. Append any known
+        // default item missing from the stored list, preserving the
+        // user's order and disabled flags for everything they already
+        // have.
+        const stored = state.general.sidebarItems;
+        if (!stored) return sidebarItems;
+        const storedIds = new Set(stored.map((item) => item.id));
+        const missing = sidebarItems.filter((item) => !storedIds.has(item.id));
+        return missing.length ? [...stored, ...missing] : stored;
+    }, shallow);
 
 export const usePlayerItems = () => useSettingsStore((state) => state.general.playerItems, shallow);
 

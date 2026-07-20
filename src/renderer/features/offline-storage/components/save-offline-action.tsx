@@ -1,5 +1,4 @@
 import { useCallback } from 'react';
-import { useTranslation } from 'react-i18next';
 
 import {
     downloadTrack,
@@ -37,10 +36,7 @@ export const SaveOfflineAction = ({ songs }: SaveOfflineActionProps) => {
     }, [server, songs, allDownloaded, downloadedTracks]);
 
     return (
-        <ContextMenu.Item
-            leftIcon={allDownloaded ? 'check' : 'cache'}
-            onSelect={onSelect}
-        >
+        <ContextMenu.Item leftIcon={allDownloaded ? 'check' : 'cache'} onSelect={onSelect}>
             {allDownloaded ? 'Remove offline' : 'Save offline'}
         </ContextMenu.Item>
     );

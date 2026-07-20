@@ -1,5 +1,4 @@
 import { useCallback, useState } from 'react';
-import { useTranslation } from 'react-i18next';
 
 import {
     downloadAlbum,
@@ -29,7 +28,6 @@ interface DownloadButtonProps {
 }
 
 export const DownloadButton = ({ albumId, playlistId, size, song }: DownloadButtonProps) => {
-    const { t } = useTranslation();
     const server = useCurrentServer();
 
     const isTrackDownloaded = useIsTrackDownloaded(song?.id);
@@ -40,16 +38,11 @@ export const DownloadButton = ({ albumId, playlistId, size, song }: DownloadButt
 
     // Check album-level download status
     const isAlbumDownloaded =
-        albumId &&
-        Object.values(downloadedTracks).some((t) => t.albumId === albumId);
+        albumId && Object.values(downloadedTracks).some((t) => t.albumId === albumId);
 
-    const isInQueue = song
-        ? downloadQueue.some((q) => q.id === song.id)
-        : false;
+    const isInQueue = song ? downloadQueue.some((q) => q.id === song.id) : false;
 
-    const queueItem = song
-        ? downloadQueue.find((q) => q.id === song.id)
-        : undefined;
+    const queueItem = song ? downloadQueue.find((q) => q.id === song.id) : undefined;
 
     const isDownloaded = song ? isTrackDownloaded : isAlbumDownloaded;
 

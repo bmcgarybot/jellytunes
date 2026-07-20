@@ -9,10 +9,10 @@ import { useIsTrackDownloaded } from '/@/renderer/features/offline-storage/offli
  *
  * Automatically revokes old blob URLs on unmount or when the trackId changes.
  */
-export function useOfflineAudio(trackId: string | undefined): string | null {
+export function useOfflineAudio(trackId: string | undefined): null | string {
     const isDownloaded = useIsTrackDownloaded(trackId);
-    const [blobUrl, setBlobUrl] = useState<string | null>(null);
-    const urlRef = useRef<string | null>(null);
+    const [blobUrl, setBlobUrl] = useState<null | string>(null);
+    const urlRef = useRef<null | string>(null);
 
     useEffect(() => {
         let cancelled = false;

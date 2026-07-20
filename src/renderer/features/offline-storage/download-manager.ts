@@ -1,8 +1,5 @@
 import { api } from '/@/renderer/api';
-import {
-    deleteAudioBlob,
-    saveAudioBlob,
-} from '/@/renderer/features/offline-storage/offline-db';
+import { deleteAudioBlob, saveAudioBlob } from '/@/renderer/features/offline-storage/offline-db';
 import {
     DownloadedTrackMeta,
     useOfflineStore,
@@ -17,33 +14,65 @@ let activeCount = 0;
 const pending: Array<() => void> = [];
 const abortControllers = new Map<string, AbortController>();
 
-function enqueue(): Promise<void> {
-    if (activeCount < MAX_CONCURRENT) {
-        activeCount++;
-        return Promise.resolve();
+export function cancelDownload(trackId: string): void {
+    const ac = abortControllers.get(trackId);
+
+    if (ac) {
+        ac.abort();
     }
 
-    return new Promise<void>((resolve) => {
-        pending.push(resolve);
-    });
+    const { actions } = useOfflineStore.getState();
+    actions.updateQueueItem(trackId, { status: 'cancelled' });
 }
 
-function dequeue(): void {
-    activeCount--;
+export async function clearAllDownloads(): Promise<void> {
+    const { actions, downloadedTracks } = useOfflineStore.getState();
 
-    if (pending.length > 0) {
-        activeCount++;
-        const next = pending.shift()!;
-        next();
+    for (const id of Object.keys(downloadedTracks)) {
+        await deleteAudioBlob(id);
     }
+
+    actions.clearAll();
 }
 
 // ─── Single track download ─────────────────────────────────
 
-export async function downloadTrack(
-    song: Song,
-    serverId: string,
-): Promise<void> {
+export async function downloadAlbum(albumId: string, serverId: string): Promise<void> {
+    if (!getServerById(serverId)) return;
+
+    const albumDetail = await api.controller.getAlbumDetail({
+        apiClientProps: { serverId },
+        query: { id: albumId },
+    });
+
+    if (!albumDetail?.songs) return;
+
+    // Serialise downloads, but each one goes through the concurrency pool
+    for (const song of albumDetail.songs) {
+        await downloadTrack(song, serverId);
+    }
+}
+
+// ─── Album download ────────────────────────────────────────
+
+export async function downloadPlaylist(playlistId: string, serverId: string): Promise<void> {
+    if (!getServerById(serverId)) return;
+
+    const playlistSongs = await api.controller.getPlaylistSongList({
+        apiClientProps: { serverId },
+        query: { id: playlistId },
+    });
+
+    if (!playlistSongs?.items) return;
+
+    for (const song of playlistSongs.items) {
+        await downloadTrack(song, serverId);
+    }
+}
+
+// ─── Playlist download ──────────────────────────────────────
+
+export async function downloadTrack(song: Song, serverId: string): Promise<void> {
     const { actions } = useOfflineStore.getState();
     const trackId = song.id;
 
@@ -96,8 +125,7 @@ export async function downloadTrack(
         }
 
         const contentLength = Number(response.headers.get('content-length') || 0);
-        const mimeType =
-            response.headers.get('content-type') || 'audio/mpeg';
+        const mimeType = response.headers.get('content-type') || 'audio/mpeg';
 
         const reader = response.body?.getReader();
 
@@ -108,7 +136,6 @@ export async function downloadTrack(
         const chunks: Uint8Array[] = [];
         let received = 0;
 
-        // eslint-disable-next-line no-constant-condition
         while (true) {
             const { done, value } = await reader.read();
 
@@ -124,7 +151,7 @@ export async function downloadTrack(
             }
         }
 
-        const blob = new Blob(chunks, { type: mimeType });
+        const blob = new Blob(chunks as BlobPart[], { type: mimeType });
 
         await saveAudioBlob(trackId, {
             blob,
@@ -160,90 +187,7 @@ export async function downloadTrack(
     }
 }
 
-// ─── Album download ────────────────────────────────────────
-
-export async function downloadAlbum(
-    albumId: string,
-    serverId: string,
-): Promise<void> {
-    if (!getServerById(serverId)) return;
-
-    const albumDetail = await api.controller.getAlbumDetail({
-        apiClientProps: { serverId },
-        query: { id: albumId },
-    });
-
-    if (!albumDetail?.songs) return;
-
-    // Serialise downloads, but each one goes through the concurrency pool
-    for (const song of albumDetail.songs) {
-        await downloadTrack(song, serverId);
-    }
-}
-
-// ─── Playlist download ──────────────────────────────────────
-
-export async function downloadPlaylist(
-    playlistId: string,
-    serverId: string,
-): Promise<void> {
-    if (!getServerById(serverId)) return;
-
-    const playlistSongs = await api.controller.getPlaylistSongList({
-        apiClientProps: { serverId },
-        query: { id: playlistId, limit: 10000, startIndex: 0 },
-    });
-
-    if (!playlistSongs?.items) return;
-
-    for (const song of playlistSongs.items) {
-        await downloadTrack(song, serverId);
-    }
-}
-
 // ─── Remove helpers ─────────────────────────────────────────
-
-export async function removeDownloadedTrack(trackId: string): Promise<void> {
-    const { actions } = useOfflineStore.getState();
-    await deleteAudioBlob(trackId);
-    actions.removeTrack(trackId);
-}
-
-export async function removeDownloadedAlbum(albumId: string): Promise<void> {
-    const { downloadedTracks } = useOfflineStore.getState();
-    const trackIds = Object.values(downloadedTracks)
-        .filter((t) => t.albumId === albumId)
-        .map((t) => t.id);
-
-    for (const id of trackIds) {
-        await removeDownloadedTrack(id);
-    }
-}
-
-export async function clearAllDownloads(): Promise<void> {
-    const { actions, downloadedTracks } = useOfflineStore.getState();
-
-    for (const id of Object.keys(downloadedTracks)) {
-        await deleteAudioBlob(id);
-    }
-
-    actions.clearAll();
-}
-
-// ─── Cancel ─────────────────────────────────────────────────
-
-export function cancelDownload(trackId: string): void {
-    const ac = abortControllers.get(trackId);
-
-    if (ac) {
-        ac.abort();
-    }
-
-    const { actions } = useOfflineStore.getState();
-    actions.updateQueueItem(trackId, { status: 'cancelled' });
-}
-
-// ─── Storage estimate ───────────────────────────────────────
 
 export async function getStorageEstimate(): Promise<{
     quota: number;
@@ -258,4 +202,46 @@ export async function getStorageEstimate(): Promise<{
     }
 
     return { quota: 0, usage: 0 };
+}
+
+export async function removeDownloadedAlbum(albumId: string): Promise<void> {
+    const { downloadedTracks } = useOfflineStore.getState();
+    const trackIds = Object.values(downloadedTracks)
+        .filter((t) => t.albumId === albumId)
+        .map((t) => t.id);
+
+    for (const id of trackIds) {
+        await removeDownloadedTrack(id);
+    }
+}
+
+export async function removeDownloadedTrack(trackId: string): Promise<void> {
+    const { actions } = useOfflineStore.getState();
+    await deleteAudioBlob(trackId);
+    actions.removeTrack(trackId);
+}
+
+// ─── Cancel ─────────────────────────────────────────────────
+
+function dequeue(): void {
+    activeCount--;
+
+    if (pending.length > 0) {
+        activeCount++;
+        const next = pending.shift()!;
+        next();
+    }
+}
+
+// ─── Storage estimate ───────────────────────────────────────
+
+function enqueue(): Promise<void> {
+    if (activeCount < MAX_CONCURRENT) {
+        activeCount++;
+        return Promise.resolve();
+    }
+
+    return new Promise<void>((resolve) => {
+        pending.push(resolve);
+    });
 }
