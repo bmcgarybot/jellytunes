@@ -41,6 +41,33 @@ Everything below is verified by running it, not assumed.
 
 ## Prioritized roadmap (in order — highest user impact first)
 
+0. **WIRE IN THE ORPHANED FEATURES — new top priority.** Verified by
+   grep: `ForYouSection` (smart-playlists) and `ArtistBioPanel`
+   (metadata-enrichment) have ZERO imports outside their own
+   directories. Both flagship features are built but never mounted —
+   users cannot see them at all. To wire For You:
+   a. New route file `src/renderer/features/smart-playlists/routes/
+      for-you-route.tsx` rendering ForYouSection; fetch the genre
+      list the same way the genre sidebar/list does and pass it in.
+   b. Register it lazy() in src/renderer/router/app-router.tsx and
+      add the path to the AppRoute enum in src/renderer/router/
+      routes.ts, following the exact pattern of HomeRoute.
+   c. Sidebar entry next to Home (see sidebar items config in
+      features/sidebar) with a sparkles/star icon, label 'For You'.
+   d. onPlaylistClick: navigate to the song list route passing the
+      params from getSmartPlaylistQuery() — study how album-detail
+      navigates to filtered song lists and mirror it. If the song
+      list route can't take arbitrary filters via state, add that
+      capability rather than building a parallel list.
+   e. ArtistBioPanel: mount inside album-artist-detail-route below
+      the header; it takes the artist name and uses the metadata
+      service. Gate on enrichmentEnabled from useMetadataSettings.
+   f. THEN do roadmap item 3 (loading/error states) since the
+      panels will finally be user-visible.
+   Note: react-query caches 'Random' queries by key — include a
+   per-mount seed in the queryKey for random smart playlists or the
+   mix never changes between visits.
+
 1. **Shrink the app chunk further (now 1.33MB).** Full-screen
    player is already split (done). I ran the bundle analysis
    (`npx vite-bundle-visualizer -c web.vite.config.ts -t raw-data`)
