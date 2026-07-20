@@ -1,0 +1,114 @@
+.container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 1.5rem;
+}
+
+.header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1.5rem;
+}
+
+.offline-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem 1rem;
+    background: var(--card-default-bg);
+    border-radius: 8px;
+    margin-bottom: 1rem;
+}
+
+.storage-bar-container {
+    margin-bottom: 1.5rem;
+}
+
+.storage-bar {
+    width: 100%;
+    height: 6px;
+    background: var(--generic-border-color);
+    border-radius: 3px;
+    overflow: hidden;
+    margin-bottom: 0.5rem;
+}
+
+.storage-bar-fill {
+    height: 100%;
+    background: var(--primary-color);
+    border-radius: 3px;
+    transition: width 0.3s ease;
+}
+
+.storage-info {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.75rem;
+    color: var(--text-secondary-color);
+}
+
+.empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 4rem 1rem;
+    text-align: center;
+}
+
+.album-group {
+    margin-bottom: 1rem;
+    border: 1px solid var(--generic-border-color);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.album-group-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem 1rem;
+    background: var(--card-default-bg);
+}
+
+.track-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.5rem 1rem;
+    border-top: 1px solid var(--generic-border-color);
+    transition: background 0.15s;
+}
+
+.track-row:hover {
+    background: var(--card-default-bg);
+}
+
+.track-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.125rem;
+    min-width: 0;
+    flex: 1;
+}
+
+.track-title {
+    font-size: 0.875rem;
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.track-artist {
+    font-size: 0.75rem;
+    color: var(--text-secondary-color);
+}
+
+.track-size {
+    font-size: 0.75rem;
+    color: var(--text-secondary-color);
+    white-space: nowrap;
+}

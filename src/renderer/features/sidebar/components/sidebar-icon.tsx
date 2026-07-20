@@ -1,6 +1,8 @@
 import {
     RiAlbumFill,
     RiAlbumLine,
+    RiDownloadFill,
+    RiDownloadLine,
     RiFlag2Fill,
     RiFlag2Line,
     RiFolder3Fill,
@@ -72,6 +74,9 @@ export const SidebarIcon = ({ active, route, size }: SidebarIconProps) => {
             case AppRoute.RADIO:
                 if (isActive) return <RiRadioFill size={size} />;
                 return <RiRadioLine size={size} />;
+            case AppRoute.DOWNLOADS:
+                if (isActive) return <RiDownloadFill size={size} />;
+                return <RiDownloadLine size={size} />;
             case AppRoute.SETTINGS:
                 if (isActive) return <RiSettings2Fill size={size} />;
                 return <RiSettings2Line size={size} />;

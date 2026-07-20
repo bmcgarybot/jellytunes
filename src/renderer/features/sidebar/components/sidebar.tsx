@@ -21,6 +21,7 @@ import {
     SidebarSharedPlaylistList,
     useSidebarPlaylistAddDragMonitor,
 } from '/@/renderer/features/sidebar/components/sidebar-playlist-list';
+import { OfflineIndicator } from '/@/renderer/features/offline-storage/components/offline-indicator';
 import {
     useAppStore,
     useAppStoreActions,
@@ -69,6 +70,7 @@ export const Sidebar = () => {
             Artists: t('page.sidebar.albumArtists'),
             'Artists-all': t('page.sidebar.artists'),
             Collections: t('page.sidebar.collections'),
+            Downloads: 'Downloads',
             Favorites: t('page.sidebar.favorites'),
             Folders: t('page.sidebar.folders'),
             Genres: t('page.sidebar.genres'),
@@ -122,6 +124,7 @@ export const Sidebar = () => {
             <Group grow id="global-search-container" style={{ flexShrink: 0 }}>
                 <ActionBar />
             </Group>
+            <OfflineIndicator />
             <ScrollArea allowDragScroll className={styles.scrollArea}>
                 <Accordion
                     classNames={{

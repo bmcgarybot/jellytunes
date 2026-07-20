@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useEffect, useRef } from 'react';
 
 import { api } from '/@/renderer/api';
+import { useOfflineAudio } from '/@/renderer/features/offline-storage/use-offline-audio';
 import { TranscodingConfig } from '/@/renderer/store';
 import { QueueSong } from '/@/shared/types/domain-types';
 
@@ -10,13 +11,16 @@ export function useSongUrl(
     current: boolean,
     transcode: Partial<TranscodingConfig>,
 ): string | undefined {
+    // ── Offline-first: prefer local blob URL when available ──
+    const offlineUrl = useOfflineAudio(song?.id);
+
     const prior = useRef(['', '']);
     const shouldReusePrior = Boolean(
         song?._serverId && current && prior.current[0] === song._uniqueId && prior.current[1],
     );
 
     const { data: queryStreamUrl } = useQuery({
-        enabled: Boolean(song?._serverId) && !shouldReusePrior,
+        enabled: Boolean(song?._serverId) && !shouldReusePrior && !offlineUrl,
         queryFn: () =>
             api.controller.getStreamUrl({
                 apiClientProps: { serverId: song!._serverId },
@@ -57,6 +61,9 @@ export function useSongUrl(
             prior.current = ['', ''];
         }
     }, [song?._serverId]);
+
+    // Offline blob URL takes priority over server stream
+    if (offlineUrl) return offlineUrl;
 
     return shouldReusePrior ? prior.current[1] : queryStreamUrl;
 }
